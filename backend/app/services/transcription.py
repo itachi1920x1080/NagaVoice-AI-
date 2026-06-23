@@ -1,58 +1,26 @@
-import asyncio
-from faster_whisper import WhisperModel
-from app.core.config import settings
+import os
+from groq import AsyncGroq
 
-print(
-    f"Loading faster-whisper '{settings.WHISPER_MODEL}' model..."
-)
+# ទាញយក API Key ពី File .env ឬ Render Environment
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# ប្តូរពី "medium" ទៅ "tiny" និងពី "cuda" ទៅ "cpu"
-model = WhisperModel(
-    "tiny",
-    device="cpu",
-    compute_type="int8"
-)
-
-def process_audio_sync(file_path: str) -> str:
-    segments, info = model.transcribe(
-        file_path,
-        beam_size=5,
-        temperature=0.0,
-        vad_filter=True,
-        vad_parameters={
-            "min_silence_duration_ms": 500
-        },
-        # មិនដាក់ language ទេ ដើម្បីឱ្យវា Auto-Detect គ្រប់ភាសា
-        # ប៉ុន្តែយើងផ្តល់ការណែនាំចម្រុះភាសា ដើម្បីកុំឱ្យវាលម្អៀងទៅរកតែសំឡេងហ្គេមអង់គ្លេស
-        initial_prompt="សួស្តី Hello 你好 Здравствуйте" 
-    )
-
-    print(
-        f"Detected language: {info.language} "
-        f"(Probability: {info.language_probability:.2f})"
-    )
-
-    texts = []
-
-    for segment in segments:
-        if hasattr(segment, "no_speech_prob"):
-            if segment.no_speech_prob > 0.5:
-                continue
-
-        texts.append(segment.text.strip())
-
-    final_text = " ".join(texts).strip()
-
-    if len(final_text) < 2:
-        return "No speech detected"
-
-    return final_text
-
+# បង្កើត Client សម្រាប់តភ្ជាប់ទៅកាន់ Groq
+client = AsyncGroq(api_key=GROQ_API_KEY)
 
 async def transcribe_audio(file_path: str) -> str:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        None,
-        process_audio_sync,
-        file_path
-    )
+    """បំប្លែងសំឡេងទៅជាអត្ថបទដោយប្រើ Groq API (ល្បឿនផ្លេកបន្ទោរ)"""
+    try:
+        # បើក File សំឡេងដែលទទួលបានពី Telegram
+        with open(file_path, "rb") as file:
+            # បញ្ជូនសំឡេងទៅកាន់ Groq Whisper Model
+            transcription = await client.audio.transcriptions.create(
+                file=(file_path, file.read()), # បញ្ជូនឈ្មោះ និងទិន្នន័យ File
+                model="whisper-large-v3-turbo", # ម៉ូដែលចុងក្រោយ លឿនបំផុត
+                prompt="អត្ថបទនេះជាភាសាខ្មែរ (Khmer language).", # ជួយប្រាប់ AI ឱ្យដឹងមុនថាជាភាសាខ្មែរ
+                response_format="text"
+            )
+            
+        return transcription
+    except Exception as e:
+        print(f"⚠️ Groq Error: {e}")
+        return ""
