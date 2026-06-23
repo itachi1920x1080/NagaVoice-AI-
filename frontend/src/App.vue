@@ -140,8 +140,8 @@ const fetchAllData = async () => {
   try {
     // ទាញទិន្នន័យទាំងពីរក្នុងពេលតែមួយដោយប្រើ Promise.all ដើម្បឱ្យលឿន
     const [statsResponse, historyResponse] = await Promise.all([
-      fetch('http://localhost:8000/api/dashboard-stats'),
-      fetch('http://localhost:8000/api/dashboard-history')
+      fetch('https://nagavoice-api.onrender.com/api/dashboard-stats'),
+      fetch('https://nagavoice-api.onrender.com/api/dashboard-history')
     ]);
 
     if (statsResponse.ok) stats.value = await statsResponse.json();

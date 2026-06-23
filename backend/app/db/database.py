@@ -1,17 +1,21 @@
+import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
-from app.core.config import settings
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from dotenv import load_dotenv
 
-# បង្កើត SQLAlchemy engine (ភ្ជាប់ទៅកាន់ Database)
-engine = create_engine(settings.DATABASE_URL)
+# ទាញយកទិន្នន័យពី .env
+load_dotenv() 
 
-# បង្កើត Session factory សម្រាប់ប្រើប្រាស់ពេលមាន Request ម្តងៗ
+# ទាញយក DATABASE_URL បើគ្មានវាទេ វានឹងប្រើ sqlite ជំនួស (ដើម្បីការពារ Error)
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sql_app.db")
+
+# បង្កើត Engine សម្រាប់ភ្ជាប់ទៅ PostgreSQL
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base class សម្រាប់ឱ្យ Models របស់យើងទាញយកមកប្រើ
 Base = declarative_base()
 
-# Dependency សម្រាប់ទាញយក database session
 def get_db():
     db = SessionLocal()
     try:
