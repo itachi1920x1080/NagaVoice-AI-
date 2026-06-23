@@ -6,10 +6,11 @@ print(
     f"Loading faster-whisper '{settings.WHISPER_MODEL}' model..."
 )
 
+# ប្តូរពី "medium" ទៅ "tiny" និងពី "cuda" ទៅ "cpu"
 model = WhisperModel(
-    settings.WHISPER_MODEL,
-    device="cuda",      # "cpu" បើគ្មាន NVIDIA GPU
-    compute_type="float16"
+    "tiny",
+    device="cpu",
+    compute_type="int8"
 )
 
 def process_audio_sync(file_path: str) -> str:
