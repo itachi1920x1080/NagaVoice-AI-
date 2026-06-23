@@ -1,0 +1,20 @@
+# លាក់ឯកសារសម្ងាត់ និងបរិស្ថាន Python
+backend/venv/
+backend/.env
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+
+# លាក់កញ្ចប់ទិន្នន័យ Frontend
+frontend/node_modules/
+frontend/dist/
+
+# លាក់ការកំណត់របស់ Editor
+.vscode/
+.idea/
+*.log
+
+# Temp audio files
+*.ogg
+*.mp3
+temp_*
